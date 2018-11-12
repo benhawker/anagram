@@ -2,7 +2,15 @@
 require 'yaml'
 
 input_word = ARGV.first
-WORD_LIST = YAML.load_file("./dictionary.yaml")
+file = File.read("./dictionary.yaml")
+
+src = YAML.parse(file)
+src.select do |node|
+  if node.is_a?(Psych::Nodes::Scalar)
+    node.quoted = true
+    node.style  = Psych::Nodes::Scalar::DOUBLE_QUOTED
+  end
+end
 
 if input_word.nil?
   STDERR.puts "Please provide a word as the first argument."
@@ -12,7 +20,7 @@ end
 # Approach: Build a {} with...
 # - Key: sorted word
 # - Value: array of words that sort to the given key
-def find(word_list: WORD_LIST, input_word:)
+def find(word_list:, input_word:)
   anagrams = {}
   sorted_input_word = input_word.chars.sort_by(&:downcase).join
 
@@ -28,4 +36,4 @@ def find(word_list: WORD_LIST, input_word:)
   puts anagrams[sorted_input_word]
 end
 
-find(input_word: input_word)
+find(input_word: input_word, word_list: src.to_ruby)
